@@ -1,0 +1,27 @@
+# ~/.orchestra/config — sourced by orch (bash syntax, KEY=value, no spaces around =)
+
+# Worker used when --worker is not given: pi | opencode | copilot
+ORCH_DEFAULT_WORKER=pi
+
+# Harness that hosts the orchestrator chat for `orch chat`: opencode | copilot | pi
+ORCH_HUB_HARNESS=opencode
+
+# Models. Leave empty to use each harness's own default.
+# pi: a pattern or provider/id from ~/.pi/agent/models.json, e.g. ollama/qwen3-coder
+ORCH_PI_MODEL=
+# opencode: provider/model
+ORCH_OPENCODE_MODEL=
+# copilot: a model name from `copilot` /model
+ORCH_COPILOT_MODEL=
+
+# OpenAI-compatible endpoint of the local model server (doctor checks <url>/models)
+# Ollama: http://localhost:11434/v1   llama.cpp: http://localhost:8080/v1   LM Studio: http://localhost:1234/v1
+ORCH_LOCAL_URL=http://localhost:11434/v1
+
+# opencode agent used for role: read tasks (empty = no --agent flag)
+ORCH_OPENCODE_READ_AGENT=plan
+
+# Limits
+ORCH_TIMEOUT=1800            # seconds before a worker is killed
+ORCH_BRIEF_MAX_LINES=80      # dispatch refuses longer briefs
+ORCH_RESULT_MAX_LINES=60     # result block is cut to this

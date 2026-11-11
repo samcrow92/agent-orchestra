@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Orchestra</title>
+<style>
+  :root {
+    --bg: #f7f6f2; --panel: #ffffff; --ink: #1d1f24; --muted: #5d6470; --line: #c9ccd3;
+    --chat: #e8efff; --chat-b: #3b62d6; --orch: #fff3d6; --orch-b: #b7791f;
+    --disk: #eef1f4; --disk-b: #6b7280; --work: #e6f6ec; --work-b: #2f855a;
+    --gate: #fde8e8; --gate-b: #c53030; --flow: #3b4252; --ret: #2f855a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171c; --panel: #1d2027; --ink: #e8eaf0; --muted: #a0a7b4; --line: #3a3f4b;
+      --chat: #1c2748; --chat-b: #7f9cf5; --orch: #3a2e12; --orch-b: #ecc45c;
+      --disk: #23272f; --disk-b: #9aa3b2; --work: #16301f; --work-b: #68d391;
+      --gate: #3b1a1a; --gate-b: #fc8181; --flow: #c3c9d6; --ret: #68d391;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171c; --panel: #1d2027; --ink: #e8eaf0; --muted: #a0a7b4; --line: #3a3f4b;
+    --chat: #1c2748; --chat-b: #7f9cf5; --orch: #3a2e12; --orch-b: #ecc45c;
+    --disk: #23272f; --disk-b: #9aa3b2; --work: #16301f; --work-b: #68d391;
+    --gate: #3b1a1a; --gate-b: #fc8181; --flow: #c3c9d6; --ret: #68d391;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 28px 16px 48px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 0 0 20px; max-width: 70ch; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .scroll { overflow-x: auto; }
+  svg { display: block; width: 100%; min-width: 760px; height: auto; }
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--ink); }
+  .t { font-size: 15px; font-weight: 650; }
+  .s { font-size: 12px; fill: var(--muted); }
+  .m { white-space: pre; font-size: 11.5px; font-family: ui-monospace, Consolas, monospace; fill: var(--muted); }
+  .lab { font-size: 12px; font-weight: 600; }
+  .num { font-size: 12px; font-weight: 700; fill: var(--panel); }
+  .flow { stroke: var(--flow); stroke-width: 1.8; fill: none; }
+  .ret { stroke: var(--ret); stroke-width: 1.8; fill: none; stroke-dasharray: 6 4; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 18px; }
+  h2 { font-size: 15px; margin: 0 0 8px; }
+  ol, ul { margin: 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  code { font: 12.5px ui-monospace, Consolas, monospace; background: var(--disk); padding: 1px 5px; border-radius: 4px; }
+  .key { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; color: var(--muted); font-size: 13px; }
+  .key i { display: inline-block; width: 26px; border-top: 2px solid var(--flow); vertical-align: middle; margin-right: 6px; }
+  .key i.r { border-top: 2px dashed var(--ret); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Agent Orchestra: how it works</h1>
+  <p class="lede">One chat with an orchestrator runs every project. It never holds project code: it writes short briefs, hands them to workers through <code>orch</code>, and accepts work only when a check it did not write passes.</p>
+
+  <div class="card scroll">
+  <svg viewBox="0 0 1000 610" role="img" aria-label="Flow: user to orchestrator chat, to orch dispatcher, to workers in project repositories, back through a verify gate">
+    <defs>
+      <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0L10 5L0 10z" fill="var(--flow)"/></marker>
+      <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0L10 5L0 10z" fill="var(--ret)"/></marker>
+    </defs>
+
+    <!-- user -->
+    <rect x="20" y="40" width="130" height="78" rx="10" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+    <text x="85" y="74" text-anchor="middle" class="t">You</text>
+    <text x="85" y="94" text-anchor="middle" class="s">one chat, all projects</text>
+
+    <!-- orchestrator chat -->
+    <rect x="230" y="20" width="330" height="118" rx="10" fill="var(--chat)" stroke="var(--chat-b)" stroke-width="1.5"/>
+    <text x="246" y="46" class="t">Orchestrator chat (the hub)</text>
+    <text x="246" y="66" class="s">opencode or Copilot CLI, strong model</text>
+    <text x="246" y="90" class="m">always loaded: hub AGENTS.md (~35 lines)</text>
+    <text x="246" y="108" class="m">on demand: orch-brief · orch-route · orch-verify</text>
+    <text x="246" y="124" class="m">           orch-projects · orch-handoff</text>
+
+    <!-- node server -->
+    <rect x="650" y="40" width="330" height="78" rx="10" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="666" y="68" class="t">Your Node web server (optional)</text>
+    <text x="666" y="88" class="s">same functions: import orch.mjs, or call</text>
+    <text x="666" y="104" class="m">orch … --json</text>
+
+    <!-- orch -->
+    <rect x="230" y="200" width="330" height="96" rx="10" fill="var(--orch)" stroke="var(--orch-b)" stroke-width="1.5"/>
+    <text x="246" y="226" class="t">orch (Node CLI + module)</text>
+    <text x="246" y="246" class="s">refuses vague briefs · one fresh worker per task</text>
+    <text x="246" y="264" class="s">caps the result · measures changed files itself</text>
+    <text x="246" y="284" class="m">task new · dispatch · result · verify · status</text>
+
+    <!-- disk -->
+    <rect x="650" y="180" width="330" height="136" rx="10" fill="var(--disk)" stroke="var(--disk-b)" stroke-width="1.5"/>
+    <text x="666" y="206" class="t">State on disk  (~/.orchestra)</text>
+    <text x="666" y="228" class="m">projects.json            registry</text>
+    <text x="666" y="246" class="m">projects/&lt;p&gt;/STATE.md     state card</text>
+    <text x="666" y="264" class="m">projects/&lt;p&gt;/tasks/NNN/   brief.md  result.md</text>
+    <text x="666" y="282" class="m">                         log.txt   verify.log</text>
+    <text x="666" y="300" class="m">hub/HANDOFF.md           restart point</text>
+
+    <!-- workers -->
+    <rect x="20" y="380" width="250" height="110" rx="10" fill="var(--work)" stroke="var(--work-b)" stroke-width="1.5"/>
+    <text x="36" y="406" class="t">pi + local Qwen</text>
+    <text x="36" y="426" class="s">small, fully specified edits; scouting</text>
+    <text x="36" y="446" class="m">pi -p --no-session --no-skills</text>
+    <text x="36" y="464" class="s">cost: free, your GPU</text>
+
+    <rect x="290" y="380" width="210" height="110" rx="10" fill="var(--work)" stroke="var(--work-b)" stroke-width="1.5"/>
+    <text x="306" y="406" class="t">opencode</text>
+    <text x="306" y="426" class="s">multi-file, judgment needed</text>
+    <text x="306" y="446" class="m">opencode run --model …</text>
+    <text x="306" y="464" class="s">also: escalation target</text>
+
+    <rect x="520" y="380" width="210" height="110" rx="10" fill="var(--work)" stroke="var(--work-b)" stroke-width="1.5"/>
+    <text x="536" y="406" class="t">Copilot CLI</text>
+    <text x="536" y="426" class="s">multi-file, judgment needed</text>
+    <text x="536" y="446" class="m">copilot -p … --no-ask-user</text>
+    <text x="536" y="464" class="s">also: escalation target</text>
+
+    <rect x="20" y="520" width="710" height="50" rx="10" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+    <text x="36" y="542" class="t">Project repositories</text>
+    <text x="36" y="560" class="s">each worker starts fresh in one repo (or its own git worktree for parallel tasks) and sees only the contract + brief</text>
+
+    <!-- gate -->
+    <rect x="780" y="380" width="200" height="190" rx="10" fill="var(--gate)" stroke="var(--gate-b)" stroke-width="1.5"/>
+    <text x="796" y="406" class="t">Verify gate</text>
+    <text x="796" y="428" class="s">1. changed files ⊆ scope</text>
+    <text x="796" y="446" class="s">2. verify command exits 0</text>
+    <text x="796" y="474" class="lab">VERIFIED</text>
+    <text x="796" y="490" class="s">close task, update state card</text>
+    <text x="796" y="516" class="lab">REJECTED</text>
+    <text x="796" y="532" class="s">new brief with the failing</text>
+    <text x="796" y="548" class="s">output, or escalate worker</text>
+
+    <!-- flows -->
+    <path class="flow" d="M150 72H228" marker-end="url(#a)" marker-start="url(#a)"/>
+    <path class="flow" d="M280 138V198" marker-end="url(#a)"/>
+    <path class="ret" d="M450 198V140" marker-end="url(#g)"/>
+    <path class="flow" d="M650 100H610V215H562" marker-end="url(#a)" stroke-dasharray="5 4"/>
+    <path class="flow" d="M560 248H648" marker-end="url(#a)" marker-start="url(#a)"/>
+    <path class="flow" d="M395 296V335M145 378V335H625V378M395 335V378" marker-end="url(#a)"/>
+    <path class="flow" d="M145 335V378" marker-end="url(#a)"/>
+    <path class="flow" d="M395 335V378" marker-end="url(#a)"/>
+    <path class="flow" d="M145 490V518" marker-end="url(#a)"/>
+    <path class="flow" d="M395 490V518" marker-end="url(#a)"/>
+    <path class="flow" d="M625 490V518" marker-end="url(#a)"/>
+    <path class="ret" d="M60 380V250H228" marker-end="url(#g)"/>
+    <path class="flow" d="M560 282H638V350H880V378" marker-end="url(#a)"/>
+
+    <!-- step numbers -->
+    <g>
+      <circle cx="189" cy="56" r="11" fill="var(--chat-b)"/><text x="189" y="60" text-anchor="middle" class="num">1</text>
+      <circle cx="280" cy="168" r="11" fill="var(--orch-b)"/><text x="280" y="172" text-anchor="middle" class="num">2</text>
+      <circle cx="395" cy="318" r="11" fill="var(--work-b)"/><text x="395" y="322" text-anchor="middle" class="num">3</text>
+      <circle cx="60" cy="310" r="11" fill="var(--ret)"/><text x="60" y="314" text-anchor="middle" class="num">4</text>
+      <circle cx="760" cy="350" r="11" fill="var(--gate-b)"/><text x="760" y="354" text-anchor="middle" class="num">5</text>
+      <circle cx="450" cy="168" r="11" fill="var(--ret)"/><text x="450" y="172" text-anchor="middle" class="num">6</text>
+    </g>
+    <text x="298" y="172" class="s">brief, ≤ 80 lines</text>
+    <text x="468" y="172" class="s">result + verdict</text>
+    <text x="78" y="306" class="s">RESULT block,</text>
+    <text x="78" y="322" class="s">cut to 60 lines</text>
+  </svg>
+  <div class="key"><span><i></i>request / dispatch</span><span><i class="r"></i>capped result returning</span></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>The loop</h2>
+      <ol>
+        <li>You ask for something in the hub chat. The orchestrator loads the project's state card, not its code.</li>
+        <li>It splits the work, picks a worker per task, and writes a brief: goal, scope, verify command, pointers to files.</li>
+        <li><code>orch dispatch</code> starts a fresh worker in the repo with the contract and the brief.</li>
+        <li>The worker ends with a fixed <code>### RESULT</code> block. <code>orch</code> keeps that block and adds what it measured: exit code and files changed.</li>
+        <li><code>orch verify</code> checks the changes stay in scope and runs the verify command.</li>
+        <li>Only the result and the verdict reach the chat. You get the outcome in a few lines.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>Where the tokens are saved</h2>
+      <ul>
+        <li>The orchestrator's context holds state cards, briefs and capped results. Transcripts and code stay on disk.</li>
+        <li>Workers start empty and load no skills; their whole prompt is the contract plus one brief.</li>
+        <li>Skills load only when needed; five descriptions is the standing cost.</li>
+        <li>Fully specified tasks go to local Qwen, which costs nothing per token.</li>
+        <li>Handoff restarts the chat from a 40-line file once it grows long.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>What makes the output reliable</h2>
+      <ul>
+        <li>Dispatch refuses a brief with no goal, no scope or no acceptance criteria.</li>
+        <li>A worker's claim is never the evidence. Changed files and the verify exit code are measured outside the worker.</li>
+        <li>Changes outside the declared scope reject the task.</li>
+        <li>No verify command means the task cannot be marked verified.</li>
+        <li>Two local failures escalate the task to a stronger worker.</li>
+      </ul>
+    </div>
+  </div>
+</main>
+</body>
+</html>
